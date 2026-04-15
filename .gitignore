@@ -1,0 +1,10 @@
+.env
+.env.local
+.next
+node_modules
+media
+*.tsbuildinfo
+npm-debug.log*
+create-payload-app-*.tgz
+.tmp_create_payload_pkg
+.tmp_payload_template

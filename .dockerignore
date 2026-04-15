@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+.env.local
+.next
+node_modules
+npm-debug.log*
+README.md
+create-payload-app-*.tgz
+.tmp_create_payload_pkg
+.tmp_payload_template
