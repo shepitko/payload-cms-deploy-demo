@@ -1,0 +1,66 @@
+version: 2.1
+
+jobs:
+  app_build:
+    docker:
+      - image: cimg/node:20.19
+    working_directory: ~/project
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - node-deps-v1-{{ checksum "package-lock.json" }}
+            - node-deps-v1-
+      - run:
+          name: Prepare environment
+          command: cp .env.example .env
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - save_cache:
+          key: node-deps-v1-{{ checksum "package-lock.json" }}
+          paths:
+            - ~/.npm
+      - run:
+          name: Type check
+          command: npx tsc --noEmit
+      - run:
+          name: Build application
+          command: npm run build
+
+  docker_build:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: Prepare environment
+          command: cp .env.example .env
+      - setup_remote_docker
+      - run:
+          name: Build Docker image
+          command: docker build -t payload-cms-deploy-demo:ci .
+
+  deploy_placeholder:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: Future deploy step
+          command: |
+            echo "Deployment is not configured yet."
+            echo "This is the place to add a DigitalOcean deploy job later."
+
+workflows:
+  ci:
+    jobs:
+      - app_build
+      - docker_build
+      - deploy_placeholder:
+          requires:
+            - app_build
+            - docker_build
+          filters:
+            branches:
+              only: main
