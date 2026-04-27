@@ -1,6 +1,7 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
+import type { PoolConfig } from 'pg'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
@@ -17,9 +18,24 @@ const isBuildPhase =
   process.env.NEXT_PHASE === 'phase-production-build' || process.env.npm_lifecycle_event === 'build'
 
 const payloadSecret = process.env.PAYLOAD_SECRET || (isBuildPhase ? 'payload-build-placeholder-secret' : undefined)
-const buildDatabaseURL = () => {
+const buildPoolConfig = (): PoolConfig | null => {
   if (process.env.DATABASE_URL) {
-    return process.env.DATABASE_URL
+    const url = new URL(process.env.DATABASE_URL)
+    const database = url.pathname.replace(/^\//, '')
+
+    return {
+      database,
+      host: url.hostname,
+      password: decodeURIComponent(url.password),
+      port: Number(url.port || '5432'),
+      ssl: process.env.DATABASE_CA_CERT
+        ? {
+            ca: process.env.DATABASE_CA_CERT,
+            rejectUnauthorized: true,
+          }
+        : undefined,
+      user: decodeURIComponent(url.username),
+    }
   }
 
   const user = process.env.POSTGRES_USER
@@ -32,16 +48,28 @@ const buildDatabaseURL = () => {
     return null
   }
 
-  const url = new URL(`postgresql://${host}:${port}/${database}`)
-  url.username = user
-  url.password = password
-
-  return url.toString()
+  return {
+    database,
+    host,
+    password,
+    port: Number(port),
+    user,
+  }
 }
 
-const databaseURL = buildDatabaseURL() || (isBuildPhase ? 'postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder' : null)
+const poolConfig =
+  buildPoolConfig() ||
+  (isBuildPhase
+    ? {
+        database: 'placeholder',
+        host: '127.0.0.1',
+        password: 'placeholder',
+        port: 5432,
+        user: 'placeholder',
+      }
+    : null)
 
-if (!databaseURL) {
+if (!poolConfig) {
   throw new Error('Missing database configuration')
 }
 
@@ -58,9 +86,7 @@ export default buildConfig({
   },
   collections: [Users, Media, Categories, Posts],
   db: postgresAdapter({
-    pool: {
-      connectionString: databaseURL,
-    },
+    pool: poolConfig,
   }),
   editor: lexicalEditor(),
   secret: payloadSecret,
