@@ -10,6 +10,31 @@ Minimal but production-leaning local development setup for Payload CMS with Post
 - local media storage mounted as a named volume
 - basic health checks for both containers
 
+## Migration flow
+
+The goal is to make the migration controlled, repeatable, and transparent.
+
+```mermaid
+flowchart TD
+    A[Contentful CMS] --> B[Export / API Fetch]
+    B --> C[Raw Data Snapshot]
+    C --> D[Transform & Mapping Scripts]
+    D --> E[Payload CMS Import]
+    E --> F[Payload CMS + PostgreSQL on Staging]
+    F --> G[Validation: counts, assets, references, key pages]
+    G --> H[Client / Editorial Review]
+    H --> I[Final Migration Run]
+    I --> J[Production Cutover]
+```
+
+## Key principles
+
+- keep raw Contentful export as a safe snapshot
+- transform data with version-controlled scripts
+- validate content before production cutover
+- run migration first on staging
+- switch production only after review
+
 ## Project structure
 
 ```text
