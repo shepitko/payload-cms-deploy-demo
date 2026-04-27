@@ -77,7 +77,24 @@ If there is no admin user yet, Payload will prompt you to create the first one i
 
 ## Environment model
 
-Payload prefers `DATABASE_URL`, but the app can also derive that value from `POSTGRES_*` variables. In Docker Compose, `DATABASE_URL` is passed explicitly. In CI or DigitalOcean later, you can either keep using a single connection string or inject the same component variables and let the config assemble them.
+Payload uses `DATABASE_URL` when it is present. If it is missing, the app derives the connection string from `POSTGRES_*` variables in code. That keeps local Docker setup simple while still letting DigitalOcean use one exact managed database URL.
+
+For DigitalOcean App Platform or a managed Postgres setup, prefer setting only `DATABASE_URL` in the app environment. That avoids mismatches between a manually assembled URL and the real database credentials.
+
+## Database troubleshooting
+
+If local Postgres says `password authentication failed for user "payload"`, the most common cause is a stale Docker volume initialized with an older password. The `POSTGRES_*` values are only used when Postgres initializes the data directory for the first time.
+
+To reset local data and reinitialize Postgres with the current `.env` values:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+If you need to keep local data, change the password inside Postgres instead of only editing `.env`.
+
+For DigitalOcean, verify that the app is using the exact managed database connection string from the control panel. If the password contains special characters, do not hand-build the URL in environment variables unless those credentials are properly URL-encoded.
 
 ## Migrations and schema changes
 

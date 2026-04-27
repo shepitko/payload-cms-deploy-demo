@@ -14,23 +14,32 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 const payloadSecret = process.env.PAYLOAD_SECRET
-const databaseURL =
-  process.env.DATABASE_URL ||
-  [
-    'postgresql://',
-    process.env.POSTGRES_USER,
-    ':',
-    process.env.POSTGRES_PASSWORD,
-    '@',
-    process.env.POSTGRES_HOST,
-    ':',
-    process.env.POSTGRES_PORT || '5432',
-    '/',
-    process.env.POSTGRES_DB,
-  ].join('')
+const buildDatabaseURL = () => {
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL
+  }
+
+  const user = process.env.POSTGRES_USER
+  const password = process.env.POSTGRES_PASSWORD
+  const host = process.env.POSTGRES_HOST
+  const port = process.env.POSTGRES_PORT || '5432'
+  const database = process.env.POSTGRES_DB
+
+  if (!user || !password || !host || !database) {
+    return null
+  }
+
+  const url = new URL(`postgresql://${host}:${port}/${database}`)
+  url.username = user
+  url.password = password
+
+  return url.toString()
+}
+
+const databaseURL = buildDatabaseURL()
 
 if (!databaseURL) {
-  throw new Error('Missing DATABASE_URL')
+  throw new Error('Missing database configuration')
 }
 
 if (!payloadSecret) {
