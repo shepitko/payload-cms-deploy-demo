@@ -13,7 +13,10 @@ import { Users } from './collections/Users'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-const payloadSecret = process.env.PAYLOAD_SECRET
+const isBuildPhase =
+  process.env.NEXT_PHASE === 'phase-production-build' || process.env.npm_lifecycle_event === 'build'
+
+const payloadSecret = process.env.PAYLOAD_SECRET || (isBuildPhase ? 'payload-build-placeholder-secret' : undefined)
 const buildDatabaseURL = () => {
   if (process.env.DATABASE_URL) {
     return process.env.DATABASE_URL
@@ -36,7 +39,7 @@ const buildDatabaseURL = () => {
   return url.toString()
 }
 
-const databaseURL = buildDatabaseURL()
+const databaseURL = buildDatabaseURL() || (isBuildPhase ? 'postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder' : null)
 
 if (!databaseURL) {
   throw new Error('Missing database configuration')
