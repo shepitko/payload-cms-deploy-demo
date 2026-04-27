@@ -91,11 +91,6 @@ a {
   color: white;
 }
 
-.muted ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
 @media (max-width: 720px) {
   .panel {
     padding: 24px;
