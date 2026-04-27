@@ -9,6 +9,7 @@ import sharp from 'sharp'
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { Posts } from './collections/Posts'
+import { migrations } from './migrations'
 import { Users } from './collections/Users'
 
 const filename = fileURLToPath(import.meta.url)
@@ -87,6 +88,7 @@ export default buildConfig({
   collections: [Users, Media, Categories, Posts],
   db: postgresAdapter({
     pool: poolConfig,
+    prodMigrations: migrations,
   }),
   editor: lexicalEditor(),
   secret: payloadSecret,

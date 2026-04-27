@@ -96,6 +96,8 @@ If you need to keep local data, change the password inside Postgres instead of o
 
 For DigitalOcean, verify that the app is using the exact managed database connection string from the control panel and that `DATABASE_CA_CERT` is attached as well.
 
+In production, this project uses checked-in Payload migrations. The current initial schema migration is stored in `src/migrations`, and the Postgres adapter runs `prodMigrations` automatically when the app starts with `NODE_ENV=production`.
+
 ## Migrations and schema changes
 
 For a small local dev setup, the main flow is to start the stack and work from there. If you begin managing schema changes through Payload migrations later, run commands inside the app container:
