@@ -8,3 +8,4 @@ npm-debug.log*
 create-payload-app-*.tgz
 .tmp_create_payload_pkg
 .tmp_payload_template
+src/app/(payload)/admin/importMap.js
